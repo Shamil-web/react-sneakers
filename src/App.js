@@ -1,52 +1,73 @@
+import React, { useEffect, useState } from "react";
 import Card from "./components/Card/Card";
 import Drawer from "./components/Drawer";
 import Header from "./components/Header";
 
-const arr = [
-  {
-    title: "Мужские Кроссовки Nike Blazer Mid Suede",
-    price: 12999,
-    imageUrl: "/img/sneakers/sneakers1.jpg",
-  },
-  {
-    title: "Мужские Кроссовки Nike Kyrie 7",
-    price: 12799,
-    imageUrl: "/img/sneakers/sneakers2.jpg",
-  },
-  {
-    title: "Мужские Кроссовки Under Armour Curry 8",
-    price: 8499,
-    imageUrl: "/img/sneakers/sneakers3.jpg",
-  },
-  {
-    title: "Мужские Кроссовки Nike Air Max 270",
-    price: 8999,
-    imageUrl: "/img/sneakers/sneakers4.jpg",
-  },
-];
-
 function App() {
+  const [items, setItems] = useState([]);
+  const [cartItems, setCartItems] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [cartOpened, setCartOpened] = useState(false);
+
+  useEffect(() => {
+    fetch("https://65aa5854081bd82e1d96b65c.mockapi.io/items")
+      .then((res) => {
+        return res.json();
+      })
+      .then((json) => {
+        setItems(json);
+      });
+  }, []);
+
+  const onAddToCart = (obj) => {
+    setCartItems([...cartItems, obj]);
+  };
+
+  const onChangeSearchInput = (event) => {
+    setSearchValue(event.target.value);
+  };
+
   return (
     <div className="wrapper clear">
-      <Drawer />
-      <Header />
+      {cartOpened && (
+        <Drawer items={cartItems} onClose={() => setCartOpened(false)} />
+      )}
+      <Header onClickCart={() => setCartOpened(true)} />
 
       <div className="content p-40">
         <div className="d-flex align-center justify-between mb-40">
-          <h1>Все кроссовки</h1>
+          <h1>
+            {searchValue
+              ? `Поиск по запросу: "${searchValue}"`
+              : "Все кроссовки"}
+          </h1>
           <div className="search-block d-flex">
             <img src="/img/search.svg" alt="search" />
-            <input placeholder="Поиск..." />
+            {searchValue && (
+              <img
+                onClick={() => setSearchValue("")}
+                className="clear cu-p"
+                src="img/btn-remove.svg"
+                alt="clear"
+              />
+            )}
+            <input
+              onChange={onChangeSearchInput}
+              value={searchValue}
+              placeholder="Поиск..."
+            />
           </div>
         </div>
 
-        <div className="d-flex">
-          {arr.map((obj) => (
+        <div className="d-flex flex-wrap">
+          {items.map((item, index) => (
             <Card
-              title={obj.title}
-              price={obj.price}
-              imageUrl={obj.imageUrl}
-              onClick={() => console.log(obj)}
+              key={index}
+              title={item.title}
+              price={item.price}
+              imageUrl={item.imageUrl}
+              onClickPlus={(obj) => onAddToCart(obj)}
+              onClickFavorite={() => console.log(1)}
             />
           ))}
         </div>
